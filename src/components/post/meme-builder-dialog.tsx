@@ -650,8 +650,9 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-[1fr_300px]">
-          {/* Canvas */}
-          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+          {/* Left column: canvas + trending CTA */}
+          <div className="space-y-4">
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/40">
             <canvas
               ref={canvasRef}
               width={MEME_CANVAS_SIZE}
@@ -696,10 +697,9 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
                 </p>
               </div>
             )}
-          </div>
+            </div>
 
-          {/* Controls */}
-          <div className="space-y-4">
+            {/* Trending CTA — generates the whole meme (image + caption) from AI's read of recent posts */}
             <Button
               type="button"
               variant="primary"
@@ -710,6 +710,74 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
               {trendingLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Flame className="h-4 w-4" />}
               {trendingLoading ? "Reading the room…" : "Trending now ✨"}
             </Button>
+          </div>
+
+          {/* Right column: controls */}
+          <div className="space-y-4">
+            {/* Background — primary way to bring your OWN image: upload or selfie */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+              <p className="text-xs uppercase tracking-wider text-cyan">
+                🖼️ Background
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Upload a photo or take a selfie — AI will caption what it sees.
+              </p>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                <Button
+                  type="button"
+                  variant="glass"
+                  size="sm"
+                  onClick={() => fileRef.current?.click()}
+                  className="px-2"
+                >
+                  <ImagePlus className="h-3 w-3" />
+                  Upload
+                </Button>
+                <Button
+                  type="button"
+                  variant="glass"
+                  size="sm"
+                  onClick={() => setCameraOpen(true)}
+                  className="px-2"
+                >
+                  <Camera className="h-3 w-3" />
+                  Selfie
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClearImage}
+                  disabled={!imageUrl}
+                  className="px-2"
+                >
+                  <Eraser className="h-3 w-3" />
+                  Clear
+                </Button>
+              </div>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onUploadTemplate}
+              />
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>Darken</span>
+                  <span>{Math.round(darken * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={70}
+                  step={1}
+                  value={darken * 100}
+                  onChange={(e) => setDarken(Number(e.target.value) / 100)}
+                  className="mt-1 w-full accent-[#a78bfa]"
+                />
+              </div>
+            </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
               <p className="text-xs uppercase tracking-wider text-brand-glow">
@@ -791,67 +859,6 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
                 </div>
               </div>
             )}
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-              <p className="text-xs uppercase tracking-wider text-cyan">
-                🖼️ Background
-              </p>
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                <Button
-                  type="button"
-                  variant="glass"
-                  size="sm"
-                  onClick={() => fileRef.current?.click()}
-                  className="px-2"
-                >
-                  <ImagePlus className="h-3 w-3" />
-                  Upload
-                </Button>
-                <Button
-                  type="button"
-                  variant="glass"
-                  size="sm"
-                  onClick={() => setCameraOpen(true)}
-                  className="px-2"
-                >
-                  <Camera className="h-3 w-3" />
-                  Selfie
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClearImage}
-                  disabled={!imageUrl}
-                  className="px-2"
-                >
-                  <Eraser className="h-3 w-3" />
-                  Clear
-                </Button>
-              </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={onUploadTemplate}
-              />
-              <div className="mt-3">
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span>Darken</span>
-                  <span>{Math.round(darken * 100)}%</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={70}
-                  step={1}
-                  value={darken * 100}
-                  onChange={(e) => setDarken(Number(e.target.value) / 100)}
-                  className="mt-1 w-full accent-[#a78bfa]"
-                />
-              </div>
-            </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
               <p className="text-xs uppercase tracking-wider text-accent">
