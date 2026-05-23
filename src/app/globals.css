@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #07060d;
+  --color-surface: #0d0a1f;
+  --color-surface-elevated: #15102e;
+  --color-foreground: #f4f1ff;
+  --color-muted: #1a1530;
+  --color-muted-foreground: #a5a1c4;
+  --color-border: #251f47;
+  --color-border-strong: #392f6b;
+
+  --color-brand: #8b5cf6;
+  --color-brand-foreground: #ffffff;
+  --color-brand-glow: #a78bfa;
+  --color-accent: #ec4899;
+  --color-accent-glow: #f472b6;
+  --color-cyan: #22d3ee;
+  --color-lime: #a3e635;
+  --color-amber: #fbbf24;
+  --color-rose: #fb7185;
+
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+
+  --color-vibe-funny: #fbbf24;
+  --color-vibe-weird: #22d3ee;
+  --color-vibe-relatable: #a78bfa;
+  --color-vibe-rant: #fb7185;
+  --color-vibe-wholesome: #4ade80;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+
+  --shadow-glow: 0 0 40px -10px rgba(139, 92, 246, 0.55);
+  --shadow-card: 0 10px 40px -20px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+
+  --animate-shimmer: shimmer 2.5s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-bounce-slow: bounce-slow 3s ease-in-out infinite;
+  --animate-gradient: gradient 8s ease infinite;
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes bounce-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes gradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(139, 92, 246, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 0% 10%, rgba(236, 72, 153, 0.12), transparent 60%),
+    radial-gradient(800px 600px at 50% 110%, rgba(34, 211, 238, 0.08), transparent 60%);
+  background-attachment: fixed;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.45);
+  color: #fff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #392f6b, #251f47);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: #4c3f8c; background-clip: padding-box; }
+
+/* Utility classes */
+@utility glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@utility glass-strong {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility gradient-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #22d3ee 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient 8s ease infinite;
+}
+
+@utility gradient-text-static {
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility glow-purple {
+  box-shadow: 0 0 30px -8px rgba(139, 92, 246, 0.6), 0 0 60px -20px rgba(139, 92, 246, 0.4);
+}
+
+@utility glow-pink {
+  box-shadow: 0 0 30px -8px rgba(236, 72, 153, 0.6), 0 0 60px -20px rgba(236, 72, 153, 0.4);
+}
+
+@utility ring-brand {
+  --tw-ring-color: rgba(139, 92, 246, 0.5);
+}
+
+/* Subtle dot pattern */
+@utility dot-pattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ============================================================
+ * Meme animations — applied to the image inside a meme post when
+ * the media URL has a #anim=<name> fragment. Keep them subtle enough
+ * to be readable but lively enough to grab attention.
+ * ============================================================ */
+
+@keyframes meme-shake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  10% { transform: translate3d(-4px, 1px, 0) rotate(-1deg); }
+  20% { transform: translate3d(4px, -1px, 0) rotate(1deg); }
+  30% { transform: translate3d(-3px, 2px, 0) rotate(-1deg); }
+  40% { transform: translate3d(3px, 0, 0) rotate(1deg); }
+  50% { transform: translate3d(-2px, 1px, 0); }
+  60% { transform: translate3d(2px, -1px, 0); }
+}
+
+@keyframes meme-bounce {
+  0%, 100% { transform: translateY(0); animation-timing-function: cubic-bezier(0.5, 0.05, 1, 0.5); }
+  50% { transform: translateY(-8px); animation-timing-function: cubic-bezier(0, 0.5, 0.5, 1); }
+}
+
+@keyframes meme-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.03); filter: brightness(1.08); }
+}
+
+@keyframes meme-rainbow {
+  0% { filter: hue-rotate(0deg) saturate(1.1); }
+  100% { filter: hue-rotate(360deg) saturate(1.1); }
+}
+
+@keyframes meme-glitch {
+  0%, 100% { transform: translate(0, 0); filter: none; }
+  20% { transform: translate(-2px, 1px); filter: hue-rotate(15deg); }
+  40% { transform: translate(2px, -1px); filter: hue-rotate(-15deg); }
+  60% { transform: translate(-1px, 2px); filter: contrast(1.2) brightness(1.1); }
+  80% { transform: translate(1px, -2px); filter: hue-rotate(8deg); }
+}
+
+@utility anim-shake {
+  animation: meme-shake 0.7s ease-in-out infinite;
+  animation-delay: 1s;
+}
+@utility anim-bounce {
+  animation: meme-bounce 0.9s ease-in-out infinite;
+}
+@utility anim-pulse {
+  animation: meme-pulse 2s ease-in-out infinite;
+}
+@utility anim-rainbow {
+  animation: meme-rainbow 4s linear infinite;
+}
+@utility anim-glitch {
+  animation: meme-glitch 1.2s steps(8) infinite;
+  animation-delay: 1.5s;
+}
+
+/* Loading shimmer */
+@utility shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+}
+
+input,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
