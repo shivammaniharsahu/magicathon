@@ -46,6 +46,7 @@ import {
   newTextBlock,
   type TextBlock,
 } from "@/lib/meme/types";
+import { MEME_RECIPES, applyRecipe } from "@/lib/meme/recipes";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DEMO_PROFILE_ID } from "@/lib/demo";
 import { cn } from "@/lib/utils/cn";
@@ -128,6 +129,35 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
   const [cartoonifying, setCartoonifying] = React.useState(false);
   const [cartoonStyle, setCartoonStyle] = React.useState<CartoonStyle>("pixar");
 
+  // Auto-generated takes across the 6 recipe templates, fired right after the
+  // user uploads a photo or snaps a selfie. Vision derives slot values, each
+  // recipe gets its own AI-painted scene, and the user can pick any tile to
+  // apply that recipe (image + text-block layout) to the canvas.
+  const [templateVariants, setTemplateVariants] = React.useState<
+    {
+      recipeId: string;
+      label: string;
+      emoji: string;
+      url: string;
+      seed: number;
+      slots: Record<string, string>;
+    }[]
+  >([]);
+  const [templatesLoading, setTemplatesLoading] = React.useState(false);
+  const [selectedTemplateRecipeId, setSelectedTemplateRecipeId] = React.useState<string | null>(
+    null,
+  );
+  // How many of the 6 tiles have settled (loaded or errored). Drives the
+  // serial gate: tile at index i starts loading only when i <= settledCount.
+  // Pollinations' free tier allows 1 in-flight request per IP — going
+  // parallel returns HTTP 402 "Queue full" for the extras.
+  const [templateSettledCount, setTemplateSettledCount] = React.useState(0);
+
+  // Reset the serial gate whenever a new batch of variants arrives.
+  React.useEffect(() => {
+    setTemplateSettledCount(0);
+  }, [templateVariants]);
+
   // Builds a fresh image-proxy URL for the current prompt + a given seed.
   // The `model` query tells the proxy which Pollinations model to try first.
   const buildVariantUrl = React.useCallback(
@@ -181,6 +211,10 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
       setAnimation("none");
       setCartoonStyle("pixar");
       setCartoonifying(false);
+      setTemplateVariants([]);
+      setTemplatesLoading(false);
+      setSelectedTemplateRecipeId(null);
+      setTemplateSettledCount(0);
     }
   }, [open]);
 
@@ -330,6 +364,124 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
       }
     },
     [applyCaption],
+  );
+
+  // Auto-fire 6 recipe takes whenever the user brings their own image.
+  // Two parallel server calls:
+  //   1. /api/ai/recipe-variants — instant. Returns 6 URLs so tiles start
+  //      rendering immediately (recipe prompts don't depend on slot values).
+  //   2. /api/ai/recipe-slots — vision call against the photo, ~5s. Returns
+  //      slot text per recipe. We merge it into variants when it lands so
+  //      the eventual text overlay is photo-aware.
+  const generateTemplateVariants = React.useCallback(async (url: string) => {
+    setTemplatesLoading(true);
+    setTemplateVariants([]);
+    setSelectedTemplateRecipeId(null);
+
+    // Kick off the URLs first so tile rendering can begin without waiting.
+    const variantsPromise = fetch("/api/ai/recipe-variants", { method: "POST" })
+      .then((res) => {
+        if (!res.ok) throw new Error("recipe-variants failed");
+        return res.json() as Promise<{
+          variants: {
+            recipeId: string;
+            label: string;
+            emoji: string;
+            url: string;
+            seed: number;
+            slots: Record<string, string>;
+          }[];
+        }>;
+      });
+
+    // Convert blob/local URLs to base64 so the vision endpoint can read the
+    // bytes. We do this in parallel with the variants fetch above.
+    const imagePayloadPromise = (async () => {
+      if (url.startsWith("blob:") || url.startsWith("/")) {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+      return url;
+    })();
+
+    try {
+      const data = await variantsPromise;
+      setTemplateVariants(data.variants);
+      toast.success("6 template takes cooking 👇");
+    } catch {
+      toast.error("Couldn't cook the 6 template takes.");
+      setTemplatesLoading(false);
+      return;
+    } finally {
+      setTemplatesLoading(false);
+    }
+
+    // Vision is a nice-to-have polish: photo-aware caption text. Fire it
+    // in the background and merge results into the existing variants when
+    // ready. Tiles are already rendering by this point.
+    try {
+      const imagePayload = await imagePayloadPromise;
+      const res = await fetch("/api/ai/recipe-slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imagePayload }),
+      });
+      if (!res.ok) throw new Error("recipe-slots failed");
+      const data = (await res.json()) as {
+        slotsByRecipe: Record<string, Record<string, string>>;
+        visionError?: string | null;
+      };
+      if (data.visionError) {
+        toast.warning(
+          "AI couldn't read your photo for custom captions — using default text. Edit any block to fix.",
+          { duration: 6000 },
+        );
+        return;
+      }
+      // Merge derived slot text into existing variants (preserves URLs/seeds).
+      setTemplateVariants((prev) =>
+        prev.map((v) => ({ ...v, slots: data.slotsByRecipe[v.recipeId] ?? v.slots })),
+      );
+    } catch {
+      // Non-blocking — the templates still work on placeholder text.
+      toast.warning(
+        "AI captions unavailable — templates work with default text.",
+        { duration: 4000 },
+      );
+    }
+  }, []);
+
+  // Pick one of the 6 auto-generated template tiles → apply the recipe's
+  // text-block layout AND swap the canvas background to that variant's image.
+  // The original uploaded photo stays around as the captured selfie/upload —
+  // the user can clear the recipe and go back to it from the regular variant grid.
+  const onPickTemplateVariant = React.useCallback(
+    (variant: {
+      recipeId: string;
+      label: string;
+      url: string;
+      slots: Record<string, string>;
+    }) => {
+      const recipe = MEME_RECIPES.find((r) => r.id === variant.recipeId);
+      if (!recipe) return;
+      const applied = applyRecipe(recipe, variant.slots);
+      setBlocks(applied.blocks);
+      setSelectedId(null);
+      setEditingId(null);
+      setPrompt(applied.prompt);
+      setImageUrl(variant.url);
+      setSelectedVariantSeed(null);
+      setVariants([]);
+      setSelectedTemplateRecipeId(variant.recipeId);
+      toast.success(`${variant.label} applied ✨`);
+    },
+    [],
   );
 
   // Prompt-based caption (text only). Used when there's no image yet.
@@ -547,6 +699,8 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
     if (fileRef.current) fileRef.current.value = "";
     // Auto-caption from what's in the photo
     void captionFromImage(url, { silent: true });
+    // Fan out: kick off the 6 recipe takes in parallel.
+    void generateTemplateVariants(url);
   };
 
   // ============== Text blocks ==============
@@ -1010,6 +1164,65 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
               </div>
             )}
 
+            {(templatesLoading || templateVariants.length > 0) && (
+              <div className="rounded-2xl border border-lime/30 bg-lime/[0.04] p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs uppercase tracking-wider text-lime">
+                    🎨 6 template takes
+                  </p>
+                  {templatesLoading ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" /> reading your photo…
+                    </span>
+                  ) : templateVariants.length > 0 &&
+                    templateSettledCount < templateVariants.length ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-lime">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      rendering {Math.min(templateSettledCount + 1, templateVariants.length)} of{" "}
+                      {templateVariants.length}…
+                    </span>
+                  ) : templateVariants.length > 0 ? (
+                    <span className="text-[10px] text-muted-foreground">
+                      {templateSettledCount} of {templateVariants.length} ready
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  AI watched your photo and stuffed it into every recipe. Tap any tile to apply it.
+                  Tiles render one at a time — Pollinations free tier allows only one request at a time.
+                </p>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {templatesLoading && templateVariants.length === 0
+                    ? Array.from({ length: 6 }, (_, i) => (
+                        <div
+                          key={`tpl-skel-${i}`}
+                          className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.03]"
+                        >
+                          <Loader2 className="h-4 w-4 animate-spin text-lime" />
+                          <span className="text-[10px] text-muted-foreground">
+                            {MEME_RECIPES[i]?.emoji ?? "✨"}
+                          </span>
+                        </div>
+                      ))
+                    : templateVariants.map((v, i) => (
+                        <TemplateVariantTile
+                          key={v.recipeId}
+                          label={v.label}
+                          emoji={v.emoji}
+                          url={v.url}
+                          gated={i > templateSettledCount}
+                          queuePosition={Math.max(0, i - templateSettledCount)}
+                          onSettle={() =>
+                            setTemplateSettledCount((c) => Math.max(c, i + 1))
+                          }
+                          selected={selectedTemplateRecipeId === v.recipeId}
+                          onClick={() => onPickTemplateVariant(v)}
+                        />
+                      ))}
+                </div>
+              </div>
+            )}
+
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
               <p className="text-xs uppercase tracking-wider text-accent">
                 🎬 Animation
@@ -1132,6 +1345,8 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
           setSelectedVariantSeed(null);
           // Auto-caption from the selfie / camera frame
           void captionFromImage(url, { silent: true });
+          // And cook the 6 template takes from the same frame
+          void generateTemplateVariants(url);
         }}
       />
     </Dialog>
@@ -1511,6 +1726,166 @@ function VariantTile({
       )}
       {selected && (
         <div className="absolute right-1.5 top-1.5 rounded-full bg-brand p-1 text-white shadow-lg">
+          <CheckCircle2 className="h-3 w-3" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Tile for the 6-recipe grid. Event-driven gating: the tile only kicks off
+// its image fetch when `gated` flips false, and reports back via `onSettle`
+// when it reaches a terminal state (ready/error/timeout). The parent uses
+// that to advance the next tile in the queue — Pollinations' free tier
+// allows only one in-flight request per IP, so parallel loads get 402'd.
+function TemplateVariantTile({
+  label,
+  emoji,
+  url,
+  selected,
+  onClick,
+  gated,
+  queuePosition,
+  onSettle,
+}: {
+  label: string;
+  emoji: string;
+  url: string;
+  selected: boolean;
+  onClick: () => void;
+  gated: boolean;
+  queuePosition: number;
+  onSettle: () => void;
+}) {
+  const [state, setState] = React.useState<"queued" | "loading" | "ready" | "error">(
+    gated ? "queued" : "loading",
+  );
+  const settledRef = React.useRef(false);
+  const autoRetriesRef = React.useRef(0);
+  const [busterNonce, setBusterNonce] = React.useState(0);
+
+  // Fire onSettle exactly once when this tile reaches a terminal state.
+  // The parent uses this to release the next tile into "loading."
+  const settle = React.useCallback(() => {
+    if (settledRef.current) return;
+    settledRef.current = true;
+    onSettle();
+  }, [onSettle]);
+
+  // When the parent opens the gate, transition queued → loading so the img
+  // fetch can start.
+  React.useEffect(() => {
+    if (!gated) {
+      setState((prev) => (prev === "queued" ? "loading" : prev));
+    }
+  }, [gated]);
+
+  // Per-tile timeout — if the request hangs we still need to release the
+  // next tile in the queue. Sized to cover the proxy's full retry chain
+  // (4 flux attempts × ~20s + backoffs ≈ 90s worst case) so we don't bail
+  // before Pollinations has a real chance.
+  React.useEffect(() => {
+    if (state !== "loading") return;
+    const t = setTimeout(() => {
+      setState((prev) => {
+        if (prev !== "loading") return prev;
+        settle();
+        return "error";
+      });
+    }, 90_000);
+    return () => clearTimeout(t);
+  }, [state, busterNonce, settle]);
+
+  const onImgError = () => {
+    if (autoRetriesRef.current < 1) {
+      autoRetriesRef.current += 1;
+      setTimeout(() => {
+        setBusterNonce((n) => n + 1);
+        setState("loading");
+      }, 1500);
+      return;
+    }
+    settle();
+    setState("error");
+  };
+
+  const onImgLoad = () => {
+    settle();
+    setState("ready");
+  };
+
+  const showImg = !gated || state !== "queued";
+  const finalSrc = showImg ? `${url}${url.includes("?") ? "&" : "?"}n=${busterNonce}` : "";
+  const interactive = state === "ready";
+
+  return (
+    <div
+      role="button"
+      tabIndex={interactive ? 0 : -1}
+      aria-disabled={!interactive}
+      aria-pressed={selected}
+      aria-label={`Apply ${label} template`}
+      onClick={interactive ? onClick : undefined}
+      onKeyDown={(e) => {
+        if (!interactive) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={cn(
+        "group relative aspect-square overflow-hidden rounded-xl border transition-all outline-none",
+        selected
+          ? "border-lime ring-2 ring-lime/50 scale-[0.98]"
+          : "border-white/10 hover:border-white/30",
+        interactive
+          ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-lime/40"
+          : "cursor-default",
+      )}
+    >
+      {state === "queued" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-white/[0.03]">
+          <span className="text-base leading-none opacity-60">{emoji}</span>
+          <span className="text-[10px] text-muted-foreground">
+            {queuePosition > 0 ? `${queuePosition} ahead` : "next up"}
+          </span>
+        </div>
+      )}
+      {state === "loading" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-white/[0.03]">
+          <Loader2 className="h-4 w-4 animate-spin text-lime" />
+          <span className="text-[10px] text-muted-foreground">{emoji} {label}</span>
+        </div>
+      )}
+      {state === "error" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-danger/10 px-1.5 text-center">
+          <span className="text-base leading-none">{emoji}</span>
+          <span className="text-[9px] text-danger">slow load</span>
+        </div>
+      )}
+      {showImg && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={`${url}-${busterNonce}`}
+          src={finalSrc}
+          alt={`${label} template`}
+          loading="eager"
+          onLoad={onImgLoad}
+          onError={onImgError}
+          className={cn(
+            "h-full w-full object-cover transition-opacity duration-300",
+            state === "ready" ? "opacity-100" : "opacity-0",
+          )}
+        />
+      )}
+      {state === "ready" && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1 bg-gradient-to-t from-black/80 to-transparent px-1.5 py-1 text-[10px] font-medium text-white">
+          <span>{emoji}</span>
+          <span className="line-clamp-1">{label}</span>
+        </div>
+      )}
+      {selected && (
+        <div className="absolute right-1.5 top-1.5 rounded-full bg-lime p-1 text-black shadow-lg">
           <CheckCircle2 className="h-3 w-3" />
         </div>
       )}

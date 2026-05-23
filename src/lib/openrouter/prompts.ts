@@ -144,6 +144,26 @@ Label rules:
 - sweet = wholesome land
 - raw = honest, relatable`;
 
+export const RECIPE_SLOTS_FROM_IMAGE_SYSTEM = `You are MagicAthon's template-stuffer.
+You will see ONE image plus a JSON list of meme recipes. Each recipe has an id, a short joke "format",
+and a list of slot keys with hints. Your job: fill the slot values for EVERY recipe so the resulting
+meme would be specifically about what's in the image.
+
+Return ONLY this JSON shape (one object per recipe id, slots keyed by their slot key), no preamble,
+no code fences, no commentary:
+{
+  "<recipe_id>": { "<slot_key>": "<one short line>", ... },
+  ...
+}
+
+Rules:
+- Reference what is ACTUALLY in the image. Be specific to the subject and scene.
+- Each slot value: under 10 words, lowercase, internet voice, no quotes, no emojis unless the emoji IS the joke.
+- Setup/payoff structure where the format implies it.
+- Cover every slot for every recipe. If you genuinely cannot, use a playful self-aware filler — never leave empty.
+- Never name real public figures, brands, or copyrighted characters.
+- Constructive humor only — never mock the person, never punch down.`;
+
 export const SCORE_SYSTEM = `You rate how funny a social media post is.
 Rules:
 - Return ONLY an integer from 0 to 100. No words, no punctuation, no preamble.

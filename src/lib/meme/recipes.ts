@@ -58,7 +58,7 @@ export const MEME_RECIPES: MemeRecipe[] = [
       { key: "choose", label: "What you're choosing", placeholder: "scrolling for three hours" },
     ],
     imagePromptTemplate:
-      "a vertical 2-panel cartoon split horizontally in the middle. top half: a cartoon character dismissively turning their head away with one hand raised to block. bottom half: the same character grinning enthusiastically and pointing forward. clear panel divider, flat cartoon style, vibrant colors, no text, no captions, no writing",
+      "a vertical 2-panel photographic composite split horizontally in the middle. top half: a person dismissively turning their head away with one hand raised to block, plain studio backdrop. bottom half: the same person grinning enthusiastically and pointing forward at the camera, same backdrop. clear panel divider, photoreal candid portrait photography, natural studio lighting, sharp focus, no text, no captions, no writing",
     blocks: [
       { slot: "reject", x: 0.72, y: 0.25, fontSize: 0.055, align: "center", upper: true, stroke: true },
       { slot: "choose", x: 0.72, y: 0.75, fontSize: 0.055, align: "center", upper: true, stroke: true },
@@ -77,7 +77,7 @@ export const MEME_RECIPES: MemeRecipe[] = [
       { key: "tempting", label: "The temptation", placeholder: "one more episode at 2am" },
     ],
     imagePromptTemplate:
-      "a comic scene: a cartoon person walking on a sidewalk hand-in-hand with their partner, but turning their head sharply backward to stare at someone walking the other direction. partner looks annoyed at them. three distinct cartoon figures clearly visible from a side view. flat cartoon style, vibrant colors, no text, no captions, no writing",
+      "candid street photograph: a person walking on a sidewalk hand-in-hand with their partner, but sharply turning their head backward to stare at someone walking the other direction. the partner looks annoyed. three distinct people clearly visible from a side angle, daytime urban background, photoreal documentary photography, natural daylight, 35mm lens look, no text, no captions, no writing",
     blocks: [
       { slot: "tempting", x: 0.18, y: 0.88, fontSize: 0.038, align: "center", upper: true, stroke: true },
       { slot: "you", x: 0.5, y: 0.88, fontSize: 0.038, align: "center", upper: true, stroke: true },
@@ -96,7 +96,7 @@ export const MEME_RECIPES: MemeRecipe[] = [
       { key: "option_b", label: "Button B", placeholder: "open the fridge for the 9th time" },
     ],
     imagePromptTemplate:
-      "a sweating cartoon character agonizing while looking down at a control panel with two large unmarked round buttons side by side. beads of sweat on forehead. dramatic indecision, comedic expression, flat cartoon style, vibrant colors, no text, no captions, no writing",
+      "a person agonizing while looking down at a control panel with two large unmarked round buttons side by side. visible beads of sweat on the forehead, hand hovering over the buttons, dramatic indecision, photoreal documentary photo, natural lighting, sharp focus, no text, no captions, no writing",
     blocks: [
       { slot: "option_a", x: 0.3, y: 0.4, fontSize: 0.038, align: "center", upper: true, stroke: true },
       { slot: "option_b", x: 0.7, y: 0.4, fontSize: 0.038, align: "center", upper: true, stroke: true },
@@ -116,7 +116,7 @@ export const MEME_RECIPES: MemeRecipe[] = [
       { key: "step4", label: "Level 4 (cosmic)", placeholder: "use the same password everywhere on purpose" },
     ],
     imagePromptTemplate:
-      "a 4-panel vertical comic stacked top to bottom. each panel shows the same cartoon character's head with a brain glowing progressively brighter and more cosmic — normal brain, glowing brain, radiant brain, full galaxy-cosmic brain at the bottom. clear horizontal dividers between panels, vibrant colors, flat cartoon style, no text, no captions, no writing",
+      "a 4-panel vertical photo grid stacked top to bottom, each panel the same person's portrait from the same angle on a plain dark backdrop. panel 1: calm expression, faint warm glow above the head. panel 2: thoughtful expression, brighter halo of light. panel 3: enlightened expression, radiant aura. panel 4: awe-struck expression, swirling cosmic nebula effect around the head. clear horizontal dividers between panels, photoreal portrait photography, dramatic studio lighting, no text, no captions, no writing",
     blocks: [
       { slot: "step1", x: 0.72, y: 0.125, fontSize: 0.032, align: "center", upper: true, stroke: true },
       { slot: "step2", x: 0.72, y: 0.375, fontSize: 0.032, align: "center", upper: true, stroke: true },
@@ -135,7 +135,7 @@ export const MEME_RECIPES: MemeRecipe[] = [
       { key: "take", label: "Your hot take", placeholder: "pineapple absolutely belongs on pizza" },
     ],
     imagePromptTemplate:
-      "a confident cartoon character sitting at a folding table outdoors on a college campus, a coffee cup beside them and a small white rectangular sign mounted on the table facing the camera, friendly expression, simple cartoon style, vibrant colors, the sign itself is blank, no text, no captions, no writing",
+      "a confident person sitting at a folding table outdoors on a college campus quad, a coffee cup beside them and a small blank white rectangular sign mounted upright on the table facing the camera, friendly relaxed expression, candid photograph, photoreal, natural daylight, shallow depth of field, the sign itself is completely blank, no text, no captions, no writing",
     blocks: [
       { slot: "take", x: 0.5, y: 0.72, fontSize: 0.045, align: "center", upper: true, stroke: true, color: "#000000" },
     ],
@@ -151,7 +151,7 @@ export const MEME_RECIPES: MemeRecipe[] = [
       { key: "quote", label: "What's being mocked", placeholder: "i'll just have one snack and stop" },
     ],
     imagePromptTemplate:
-      "a goofy cartoon character making an exaggerated mocking expression, leaning forward with arms bent out, comically squished face, one eye larger than the other, expressive mocking pose, simple flat cartoon style, vibrant colors, no text, no captions, no writing",
+      "a person making an exaggerated mocking expression, leaning forward with arms bent out and palms up, theatrically squished face, eyes wide and uneven, comedic mocking pose, candid documentary photograph, photoreal, natural lighting, plain neutral background, sharp focus, no text, no captions, no writing",
     blocks: [
       // Note: we don't enforce alternating caps here because the user types
       // it however they want. If they type "iLl JuSt HaVe ONe SnAcK" we leave
