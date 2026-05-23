@@ -4,7 +4,22 @@
 >
 > The social playground where authenticity gets applause. Built for humans, designed for laughs.
 
-MagicAthon is a Next.js 15 / App Router social platform with humor as the core metric. Real people, real stories, AI-assisted roasts, vibe matching, and zero corporate energy.
+### 🔗 Live demo → **[magicathon-silk.vercel.app](https://magicathon-silk.vercel.app/)**
+
+---
+
+## What is this?
+
+MagicAthon is an **AI-native social platform built for memes and laughter**. Think Instagram + Reddit + a comedy coach — except every part of the app is helped by AI:
+
+- 🎨 **AI Meme Studio** — describe a scene in plain English and the app generates the image. Don't like it? Click again for fresh variants. Add text anywhere, drag it around, change colors, pick an animation. Or just upload a photo / snap a selfie and let AI write the caption from what it sees in the picture.
+- 🤖 **Funny Coach** — as you type a post draft, AI scores it 0–100 in real time and tells you the one thing to change to make it funnier ("add a punchline about your landlord's reaction").
+- 🔥 **Daily Trending Meme** — every day, AI reads what's landing in the feed, comes up with a fresh joke, generates the image, writes the caption, and pins it to the top of /feed.
+- 🥊 **Meme Battle** — two random memes face off in the feed. Tap the funnier one. The AI weighs in with whether it agrees with you. Repeat. Best engagement loop in the app.
+- ✨ **AI score on every post** — every post gets a 0–100 funniness rating from `gpt-4o-mini`. Sorted by laughs + AI score; the platform learns what lands.
+- 🔪 **AI Roast suggestions** — on any "Roast Me" post, one click pulls three witty roasts from AI.
+
+It's a hackathon prototype, so the "social" side runs in **demo mode** (no signup — everyone posts as the shared Magic Guest profile). That keeps the focus on the AI features, which are the actual point.
 
 ---
 
