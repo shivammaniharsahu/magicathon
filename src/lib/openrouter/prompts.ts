@@ -79,6 +79,20 @@ Rules:
 - Never copy any of the other lines verbatim.
 - Never name real public figures or copyrighted characters.`;
 
+export const CARTOONIFY_DESCRIBE_SYSTEM = `You're describing a real photo so a separate AI image model can repaint it as a funny animated cartoon.
+
+Return ONLY a single sentence under 240 chars covering:
+- The main subject (a person / animal / object) — describe by VISIBLE details only (hair style, glasses, clothes, props)
+- Their pose, expression, and gesture
+- The setting in 3-5 words (e.g. "messy bedroom", "office cubicle", "coffee shop", "kitchen with mugs")
+
+Hard rules:
+- NEVER name real people, brands, logos, copyrighted characters, or celebrities.
+- NEVER reference ethnicity, race, age, body shape, gender presentation, or any sensitive attribute.
+- Use observable visual nouns only. "A person in a navy hoodie holding a mug" — not "a young guy holding a mug".
+- Plain language. No flowery adjectives. No metaphors.
+- End the sentence with a period. No commentary, no preamble, no code fences.`;
+
 export const VISION_CAPTION_SYSTEM = `You're MagicAthon's vision-based meme captioner.
 You will see an image. Look at it. Then write a 2-line meme caption that fits what you see.
 

@@ -185,7 +185,7 @@ export function CreatePostDialog({ open, onOpenChange, profile }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-brand-glow" /> Create a post
@@ -204,7 +204,7 @@ export function CreatePostDialog({ open, onOpenChange, profile }: Props) {
               value={content}
               onChange={(e) => setContent(e.target.value.slice(0, MAX_LEN))}
               placeholder="What's on your mind today? 🫠"
-              className="min-h-[120px] border-0 bg-transparent text-base focus:bg-transparent focus:ring-0"
+              className="min-h-[88px] border-0 bg-transparent text-base focus:bg-transparent focus:ring-0"
               autoFocus
             />
             {mediaUrls.length > 0 && (
@@ -287,24 +287,22 @@ export function CreatePostDialog({ open, onOpenChange, profile }: Props) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">
-                Magic Boost <span className="ml-1">✨</span>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Let AI show your post to the right people.
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Magic Boost ✨</p>
+              <p className="truncate text-xs text-muted-foreground">
+                AI surfaces it to the right people.
               </p>
             </div>
             <Switch checked={boost} onCheckedChange={setBoost} />
           </div>
-          <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3">
-            <div>
-              <p className="text-sm font-medium">
-                Roast Me <span className="ml-1">🔥</span>
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Roast Me 🔥</p>
+              <p className="truncate text-xs text-muted-foreground">
+                Invite the funniest replies.
               </p>
-              <p className="text-xs text-muted-foreground">Invite the funniest replies.</p>
             </div>
             <Switch checked={roastMe} onCheckedChange={setRoastMe} />
           </div>

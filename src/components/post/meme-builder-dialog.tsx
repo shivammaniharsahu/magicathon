@@ -15,6 +15,7 @@ import {
   PenLine,
   Plus,
   RefreshCcw,
+  Smile,
   Sparkles,
   Trash2,
   Upload,
@@ -51,6 +52,17 @@ import { cn } from "@/lib/utils/cn";
 import { WebcamCaptureDialog } from "./webcam-capture-dialog";
 
 const BUCKET = "post-media";
+
+type CartoonStyle = "pixar" | "cartoon" | "anime" | "caricature" | "vector" | "claymation";
+
+const CARTOON_STYLES: { key: CartoonStyle; label: string; emoji: string }[] = [
+  { key: "pixar", label: "Pixar", emoji: "🤩" },
+  { key: "cartoon", label: "Cartoon", emoji: "🦊" },
+  { key: "anime", label: "Anime", emoji: "🌸" },
+  { key: "caricature", label: "Caricature", emoji: "🤪" },
+  { key: "vector", label: "Vector", emoji: "🎨" },
+  { key: "claymation", label: "Claymation", emoji: "🧱" },
+];
 
 type AnimationKey = "none" | "shake" | "bounce" | "pulse" | "rainbow" | "glitch";
 
@@ -112,6 +124,8 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
   const [captionLoading, setCaptionLoading] = React.useState(false);
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [animation, setAnimation] = React.useState<AnimationKey>("none");
+  const [cartoonifying, setCartoonifying] = React.useState(false);
+  const [cartoonStyle, setCartoonStyle] = React.useState<CartoonStyle>("pixar");
 
   // Builds a fresh image-proxy URL for the current prompt + a given seed.
   // The `model` query tells the proxy which Pollinations model to try first.
@@ -164,6 +178,8 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
       setVariants([]);
       setSelectedVariantSeed(null);
       setAnimation("none");
+      setCartoonStyle("pixar");
+      setCartoonifying(false);
     }
   }, [open]);
 
@@ -403,6 +419,49 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
     imageElRef.current = null;
     setImageVersion((v) => v + 1);
     setSelectedVariantSeed(null);
+  };
+
+  // Cartoonify: take the current image, repaint it in a chosen cartoon style.
+  // Two-step pipeline server-side: vision describes the photo → builds a
+  // stylized prompt → returns a proxy URL that streams the rendered cartoon.
+  const onCartoonify = async () => {
+    if (!imageUrl) {
+      toast.message("Upload a photo or take a selfie first.");
+      return;
+    }
+    setCartoonifying(true);
+    try {
+      // Convert blob: URLs to base64 so the vision API can fetch the bytes.
+      let imagePayload = imageUrl;
+      if (imageUrl.startsWith("blob:") || imageUrl.startsWith("/")) {
+        const res = await fetch(imageUrl);
+        const blob = await res.blob();
+        imagePayload = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+      const res = await fetch("/api/ai/cartoonify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imagePayload, style: cartoonStyle }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = (await res.json()) as { url: string; description?: string };
+      // The proxy URL will start loading via the canvas useEffect.
+      setImageUrl(data.url);
+      setSelectedVariantSeed(null);
+      setVariants([]);
+      toast.success(
+        `Cartoonifying as ${CARTOON_STYLES.find((s) => s.key === cartoonStyle)?.label ?? cartoonStyle} ✨`,
+      );
+    } catch {
+      toast.error("AI cartoonifier flopped. Try again.");
+    } finally {
+      setCartoonifying(false);
+    }
   };
 
   const onEnhancePrompt = async () => {
@@ -700,16 +759,33 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
             </div>
 
             {/* Trending CTA — generates the whole meme (image + caption) from AI's read of recent posts */}
-            <Button
-              type="button"
-              variant="primary"
-              className="w-full"
-              onClick={onTrending}
-              disabled={trendingLoading || generating}
-            >
-              {trendingLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Flame className="h-4 w-4" />}
-              {trendingLoading ? "Reading the room…" : "Trending now ✨"}
-            </Button>
+            <div className="rounded-2xl border border-amber/30 bg-gradient-to-r from-amber/10 via-rose/10 to-accent/10 p-3">
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-amber">
+                  🔥 Hot right now
+                </span>
+                <span className="rounded-full bg-amber/20 px-2 py-0.5 text-[10px] font-semibold text-amber">
+                  ZERO EFFORT
+                </span>
+              </div>
+              <Button
+                type="button"
+                onClick={onTrending}
+                disabled={trendingLoading || generating}
+                className="w-full bg-gradient-to-r from-amber via-rose to-accent text-black shadow-[0_10px_40px_-8px_rgba(251,113,133,0.5)] hover:shadow-[0_14px_50px_-8px_rgba(251,191,36,0.6)] hover:brightness-110"
+              >
+                {trendingLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Flame className="h-4 w-4" />
+                )}
+                {trendingLoading ? "Reading the room…" : "Cook me a trending meme"}
+              </Button>
+              <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+                AI reads what&apos;s landing in the feed → writes the joke → paints
+                the image → fills the text. One click.
+              </p>
+            </div>
           </div>
 
           {/* Right column: controls */}
@@ -762,6 +838,45 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
                 className="hidden"
                 onChange={onUploadTemplate}
               />
+
+              {/* Cartoonify — one-click stylized repaint of the current image */}
+              <div className="mt-3 rounded-xl border border-accent/30 bg-accent/[0.06] p-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] uppercase tracking-wider text-accent">
+                    🎭 Cartoonify
+                  </span>
+                  <select
+                    value={cartoonStyle}
+                    onChange={(e) => setCartoonStyle(e.target.value as CartoonStyle)}
+                    className="h-6 rounded-md border border-white/10 bg-black/40 px-1.5 text-[11px] outline-none focus:border-accent/50"
+                  >
+                    {CARTOON_STYLES.map((s) => (
+                      <option key={s.key} value={s.key}>
+                        {s.emoji} {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={onCartoonify}
+                  disabled={!imageUrl || cartoonifying}
+                  className="mt-2 w-full"
+                >
+                  {cartoonifying ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Smile className="h-3 w-3" />
+                  )}
+                  {cartoonifying ? "AI is sketching…" : "Cartoonify this image"}
+                </Button>
+                <p className="mt-1.5 text-[10px] text-muted-foreground">
+                  AI describes your photo, then repaints it in the chosen style — funnier and more meme-able.
+                </p>
+              </div>
+
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                   <span>Darken</span>
