@@ -50,6 +50,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DEMO_PROFILE_ID } from "@/lib/demo";
 import { cn } from "@/lib/utils/cn";
 import { WebcamCaptureDialog } from "./webcam-capture-dialog";
+import { RecipePicker } from "./recipe-picker";
 
 const BUCKET = "post-media";
 
@@ -243,11 +244,13 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
 
   // ============== AI image generation (multi-variant) ==============
 
-  const fetchVariants = async (count = 2) => {
+  // explicitPrompt lets callers (e.g. the recipe picker) trigger generation
+  // before React has flushed setPrompt() — they pass the prompt directly.
+  const fetchVariants = async (explicitPrompt: string, count = 2) => {
     const res = await fetch("/api/ai/image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, count }),
+      body: JSON.stringify({ prompt: explicitPrompt, count }),
     });
     if (!res.ok) throw new Error(await res.text());
     return (await res.json()) as {
@@ -255,8 +258,9 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
     };
   };
 
-  const onGenerateVariants = async () => {
-    if (!prompt.trim()) {
+  const onGenerateVariants = async (overridePrompt?: string) => {
+    const effectivePrompt = (overridePrompt ?? prompt).trim();
+    if (!effectivePrompt) {
       toast.message("Describe the meme image first.");
       return;
     }
@@ -265,7 +269,7 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
     setImageUrl(null);
     imageElRef.current = null;
     try {
-      const data = await fetchVariants(2);
+      const data = await fetchVariants(effectivePrompt, 2);
       setVariants(data.variants);
     } catch {
       toast.error("Couldn't generate. Try a shorter prompt or hit again.");
@@ -750,10 +754,23 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
               </div>
             )}
             {!imageUrl && !imageLoading && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <p className="text-xs text-muted-foreground">
-                  No image yet. Describe a scene → Generate.
-                </p>
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 text-center">
+                {generating ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-brand-glow" />
+                    <p className="text-xs text-muted-foreground">
+                      Cooking 2 variants — tap one on the right when they appear →
+                    </p>
+                  </div>
+                ) : variants.length > 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    👉 Pick one of the variants on the right to use it here.
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No image yet. Pick a template, describe a scene, or upload a photo.
+                  </p>
+                )}
               </div>
             )}
             </div>
@@ -894,6 +911,24 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
               </div>
             </div>
 
+            {/* Reusable meme recipes — 6 classic formats. Each one fills the prompt
+                + text-block layout, then triggers normal generation. */}
+            <RecipePicker
+              onApply={({ prompt: tplPrompt, blocks: tplBlocks, recipe }) => {
+                setPrompt(tplPrompt);
+                setBlocks(tplBlocks);
+                setSelectedId(null);
+                setEditingId(null);
+                setSelectedVariantSeed(null);
+                setImageUrl(null);
+                imageElRef.current = null;
+                toast.success(`${recipe.label} → generating image…`);
+                // Auto-fire generation so the user sees the meme materialize
+                // immediately. They can still hit Regenerate for a fresh take.
+                void onGenerateVariants(tplPrompt);
+              }}
+            />
+
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
               <p className="text-xs uppercase tracking-wider text-brand-glow">
                 ✨ Describe the meme image
@@ -932,7 +967,7 @@ export function MemeBuilderDialog({ open, onOpenChange, onCreated }: Props) {
                 <Button
                   type="button"
                   size="sm"
-                  onClick={onGenerateVariants}
+                  onClick={() => onGenerateVariants()}
                   disabled={generating}
                   className="flex-1"
                 >
