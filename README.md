@@ -29,16 +29,13 @@
 
 ---
 
-## 🎬 60-second walkthrough
+## 🎬 GIF walkthrough
 
-<!-- Drop your demo video file into this README on GitHub (drag-and-drop) and
-     replace the src below with the user-images.githubusercontent.com URL it gives you.
-     If using a local file, commit to docs/videos/demo.mp4 first. -->
 
-https://github.com/shivammaniharsahu/magicathon/assets/REPLACE_WITH_VIDEO_URL_AFTER_DRAG_DROP/demo.mp4
 
 > **No video yet?** Replace the line above with a GIF or use the live link.
 > The fastest way: edit this README on github.com → drag your `.mp4` into the editor → GitHub generates a URL → paste it in place of the line above.
+
 
 ---
 
@@ -64,26 +61,14 @@ MagicAthon is an **AI-native social platform built for memes and laughter**. Thi
 
 > Describe a scene in plain English → AI renders two variants you can pick from. Drag text anywhere on the canvas, pick a color, add an animation. Or hit **Cook me a trending meme** and let AI do the whole thing.
 
-<p align="center">
-  <img src="docs/screenshots/03-meme-studio.png" alt="AI Meme Studio with text editing" width="850" />
-</p>
+
 
 ---
 
 ### 🎭 Cartoonify — turn any photo into a cartoon
 
 > AI vision describes your photo, then Pollinations repaints it in your chosen style. Pick from **Pixar**, **Cartoon**, **Anime**, **Caricature**, **Vector**, or **Claymation**. Same scene, same vibe — way funnier.
-
-<table align="center">
-  <tr>
-    <td align="center"><img src="docs/screenshots/04-cartoonify-before.png" alt="Original photo" width="380" /></td>
-    <td align="center"><img src="docs/screenshots/04-cartoonify-after.png" alt="Pixar-style cartoon version" width="380" /></td>
-  </tr>
-  <tr>
-    <td align="center"><em>Original selfie</em></td>
-    <td align="center"><em>One-click Pixar version</em></td>
-  </tr>
-</table>
+<img width="733" height="750" alt="Screenshot 2026-05-23 at 5 38 51 PM" src="https://github.com/user-attachments/assets/031a3a06-4667-441c-ac94-33ea44b423a2" />
 
 ---
 
@@ -92,8 +77,11 @@ MagicAthon is an **AI-native social platform built for memes and laughter**. Thi
 > As you type a draft, AI scores it 0–100 in real time and tells you exactly what to change. *"Add a punchline about your landlord's reaction"* — not generic "be funnier" advice.
 
 <p align="center">
-  <img src="docs/screenshots/05-coach.png" alt="Funny Coach reading a draft and offering a specific tip" width="650" />
+  <img width="753" height="777" alt="Screenshot 2026-05-23 at 5 38 28 PM" src="https://github.com/user-attachments/assets/b38920d5-0015-4619-8915-fe88f82d7d4a" />
+
 </p>
+
+
 
 ---
 
@@ -102,7 +90,8 @@ MagicAthon is an **AI-native social platform built for memes and laughter**. Thi
 > Two random recent memes face off in the feed. Tap the funnier one — the winner gets a real +1 laugh in the DB, and AI tells you whether it agrees with your pick. Repeat until you've battled them all.
 
 <p align="center">
-  <img src="docs/screenshots/06-meme-battle.png" alt="Meme Battle widget mid-vote" width="850" />
+  <img width="769" height="366" alt="Screenshot 2026-05-23 at 5 41 16 PM" src="https://github.com/user-attachments/assets/5477ca4c-5dca-4608-86e6-592bda8520c7" />
+
 </p>
 
 ---
@@ -112,7 +101,8 @@ MagicAthon is an **AI-native social platform built for memes and laughter**. Thi
 > Every UTC midnight, AI reads the top posts of the last 7 days, comes up with a brand-new joke that rides the wave, generates the image, writes the top + bottom text, and pins the whole thing to the top of `/feed`. Updates once a day; cached server-side so every visitor sees the same one.
 
 <p align="center">
-  <img src="docs/screenshots/02-feed.png" alt="Feed with the Daily Trending card pinned at the top" width="850" />
+  <img width="739" height="199" alt="Screenshot 2026-05-23 at 5 41 59 PM" src="https://github.com/user-attachments/assets/d7e55db3-8007-487b-9abe-d767b2bac510" />
+
 </p>
 
 ---
@@ -122,7 +112,7 @@ MagicAthon is an **AI-native social platform built for memes and laughter**. Thi
 > Click any text directly on the canvas → cursor lands on it → type to replace. Drag the same block anywhere to reposition. Edit color, font size, alignment, CAPS, stroke — or ask AI to rewrite that specific line for you.
 
 <p align="center">
-  <img src="docs/screenshots/08-text-edit.png" alt="Inline text editor over a meme block on the canvas" width="650" />
+  <img width="753" height="777" alt="Screenshot 2026-05-23 at 5 38 28 PM" src="https://github.com/user-attachments/assets/f8654cdc-90de-42ac-b142-bf2187c7dbf2" />
 </p>
 
 ---
@@ -130,6 +120,8 @@ MagicAthon is an **AI-native social platform built for memes and laughter**. Thi
 ### 🎬 Animated memes
 
 > Pick one of 5 animation styles (**Shake / Bounce / Pulse / Rainbow / Glitch**) right in the studio. The animation plays live on the preview and again when the meme appears in the feed. Encoded in a URL fragment so the static image still caches normally.
+<img width="807" height="761" alt="Screenshot 2026-05-23 at 5 35 55 PM" src="https://github.com/user-attachments/assets/092fb577-4a23-4def-9e6f-93bfe456801f" />
+
 
 ---
 
